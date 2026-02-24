@@ -1,0 +1,23 @@
+[package]
+name = "roon-tui"
+version = "0.1.0"
+edition = "2021"
+description = "Terminal UI for Roon via roon-cli daemon"
+license = "MIT"
+authors = ["Edgar Post"]
+repository = "https://github.com/EdgarPost/roon-tui"
+keywords = ["roon", "tui", "terminal", "music"]
+categories = ["command-line-interface", "multimedia"]
+
+[dependencies]
+ratatui = "0.29"
+crossterm = "0.29"
+tokio = { version = "1.48", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+ratatui-image = "8.1"
+image = "0.25"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
