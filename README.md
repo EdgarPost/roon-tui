@@ -1,117 +1,127 @@
-# Roon TUI
+# roon-tui
 
-A terminal user interface for [Roon](https://roon.app/) via the [roon-cli](https://github.com/EdgarPost/roon-cli) daemon.
+A terminal user interface for [Roon](https://roon.app/) built with Rust, [Ratatui](https://ratatui.rs/), and the [roon-cli](https://github.com/EdgarPost/roon-cli) daemon.
 
-Built with Rust and [Ratatui](https://ratatui.rs/), inspired by lazygit, k9s, and yazi.
+![Rust](https://img.shields.io/badge/rust-stable-orange)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
 ## Features
 
-- **Now Playing View** - Current track info, progress bar, playback controls
-- **Browse View** - Navigate your Roon library (artists, albums, playlists)
-- **Queue View** - View and manage the current playback queue
-- **Zone Management** - Switch between zones, view zone grouping
-- **Album Art** - Displays album art using Kitty graphics protocol (Ghostty, Kitty, iTerm2)
-- **Real-time Updates** - Live position, state, and track updates via subscription
+- **Now Playing** — album art, track info, progress bar, playback state indicators, and volume display
+- **Browse** — navigate your Roon library with breadcrumb trail and drill-down (artists, albums, playlists, genres, etc.)
+- **Search** — search your library and drill into results to play
+- **Playback Controls** — play/pause, next/prev, shuffle, loop, radio, volume, mute
+- **Zone Management** — switch between Roon zones
+- **Album Art** — inline album art via Kitty graphics protocol (Ghostty, Kitty, WezTerm, iTerm2)
 
 ## Requirements
 
-- [roon-cli](https://github.com/EdgarPost/roon-cli) daemon running
-- Roon Core on your network
-- Terminal with Kitty graphics protocol support (for album art)
+- [roon-cli](https://github.com/EdgarPost/roon-cli) installed and configured
+- Roon Core running on your network
+- A terminal with Kitty graphics protocol support (for album art — optional)
 
 ## Installation
 
-### Using Nix Flakes
+### Nix Flakes (recommended)
 
 ```bash
 # Run directly
 nix run github:EdgarPost/roon-tui
 
-# Or install
+# Or install to your profile
 nix profile install github:EdgarPost/roon-tui
 ```
 
-### From Source
+The Nix flake automatically includes `roon-cli` on the PATH.
+
+### From source
 
 ```bash
+git clone https://github.com/EdgarPost/roon-tui.git
+cd roon-tui
 cargo build --release
 ./target/release/roon-tui
 ```
 
+Make sure `roon` (from [roon-cli](https://github.com/EdgarPost/roon-cli)) is on your PATH.
+
 ## Usage
 
 Start the roon-cli daemon first:
+
 ```bash
-roon-daemon
+roon daemon
 ```
 
-Then run the TUI:
+Then launch the TUI:
+
 ```bash
 roon-tui
 ```
 
-## Keyboard Shortcuts
-
-### Global
-| Key | Action |
-|-----|--------|
-| `q` | Quit |
-| `?` | Show help |
-| `Tab` | Next view |
-| `Shift+Tab` | Previous view |
-| `Esc` | Back / Close popup |
-
-### Playback
-| Key | Action |
-|-----|--------|
-| `Space` | Play / Pause |
-| `n` | Next track |
-| `p` | Previous track |
-| `+` / `-` | Volume up / down |
-| `m` | Mute / Unmute |
-| `s` | Toggle shuffle |
-| `r` | Cycle loop mode |
-| `R` | Toggle Roon Radio |
+## Keybindings
 
 ### Navigation
-| Key | Action |
-|-----|--------|
-| `j` / `k` | Move down / up |
-| `h` / `l` | Navigate back / select |
-| `Enter` | Select / Confirm |
-| `g` / `G` | Go to top / bottom |
 
-### Zones
-| Key | Action |
-|-----|--------|
-| `z` | Zone selector |
-| `Ctrl+g` | Zone grouping |
+| Key     | Action             |
+|---------|--------------------|
+| `1`     | Now Playing view   |
+| `2`     | Browse library     |
+| `3` `/` | Search library     |
+| `z`     | Select zone        |
+| `?`     | Show/hide help     |
+| `q`     | Quit               |
 
-### Search
-| Key | Action |
-|-----|--------|
-| `/` | Search library |
+### Playback
+
+| Key     | Action             |
+|---------|--------------------|
+| `Space` | Play / Pause       |
+| `n`     | Next track         |
+| `p`     | Previous track     |
+| `s`     | Toggle shuffle     |
+| `l`     | Cycle loop mode    |
+| `r`     | Toggle Roon Radio  |
+
+### Volume
+
+| Key     | Action             |
+|---------|--------------------|
+| `+` `=` | Volume up          |
+| `-`     | Volume down        |
+| `m`     | Toggle mute        |
+
+### Browse / Search
+
+| Key         | Action               |
+|-------------|----------------------|
+| `j` / `k`   | Navigate down / up   |
+| `Enter`     | Select / drill in    |
+| `Esc` `Bksp`| Go back              |
+| `/`         | Activate search input|
+
+## Architecture
+
+```
+roon-tui (Rust/Ratatui) ──CLI──> roon (Node.js) <──API──> Roon Core
+```
+
+`roon-tui` shells out to the `roon` CLI for all communication with Roon Core. The CLI handles authentication, transport subscriptions, and the browse/search API. The TUI polls zone state every second and fetches album art asynchronously over HTTP.
 
 ## Development
 
 ```bash
-# Enter development shell
+# Enter dev shell (includes Rust toolchain + roon-cli)
 nix develop
 
 # Build
 cargo build
 
 # Run with debug logging
-RUST_LOG=roon_tui=debug cargo run 2> debug.log
+RUST_LOG=roon_tui=debug cargo run
 ```
 
-## Architecture
-
-```
-roon-tui (Rust) <--Unix Socket--> roon-daemon (Node.js) <--> Roon Core
-```
-
-The TUI communicates with the roon-cli daemon via Unix socket at `/tmp/roon-cli.sock` using JSON-RPC.
+Logs are written to `/tmp/roon-tui.log`.
 
 ## License
 
